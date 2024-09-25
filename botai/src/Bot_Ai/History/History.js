@@ -17,6 +17,7 @@ const History=({setPastConversation})=>{
     if(pastData1)
     {
         setDataArr(JSON.parse(pastData1));
+        setFilteredStarsData(JSON.parse(pastData1))
     }
     },[]);
     console.log("past",dataArr);
