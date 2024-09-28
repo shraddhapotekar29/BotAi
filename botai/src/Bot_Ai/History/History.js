@@ -11,7 +11,20 @@ const History=({setPastConversation})=>{
     const[dataArr,setDataArr]=useState([]);
     const[togglebtn,setTogglebtn]=useState(false);
     const[filterStarsData,setFilteredStarsData]=useState([]);
+    const newDate=localStorage.getItem("date");
+
     console.log("filterStarsData",filterStarsData);
+
+    const dateFn=(newDate)=>{
+      const today=new Date().toLocaleDateString();
+      if(today===newDate)
+      {
+        return "Today's Chats";
+      }
+     else{
+    return newDate;
+     }
+    }
     useEffect(()=>{
     const pastData1=localStorage.getItem("pastConversation");
     if(pastData1)
@@ -44,7 +57,7 @@ const History=({setPastConversation})=>{
             backgroundColor: "#ffffff",
             zIndex: 2,
             width:"60%",
-            display: { xs: "block", md: "none" }, // hidden when md and above
+            display: { xs: "block", md: "none" }, 
           }}
         >
           <SideBar setPastConversation={setPastConversation} toggleBtn={true} setTogglebtn={setTogglebtn} togglebtn={togglebtn}/>
@@ -66,10 +79,9 @@ const History=({setPastConversation})=>{
                 </select>
               </div>
     <h2>Conversation History</h2>
-    <h4 style={{textAlign:"left"}}>Today’s Chats</h4>
-
     {filterStarsData.map((data)=>(
         <div key={data.name}>
+           <h4 style={{textAlign:"left"}}>{dateFn(newDate)}</h4>
             <div className={style.question}>
                 <div className={style.que}>
                 <img src={you} alt="you"/>

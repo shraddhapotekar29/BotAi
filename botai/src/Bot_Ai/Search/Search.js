@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect, useRef } from "react";
 import style from "./Search.module.css";
 import round from "../../assets/round.png";
 import SampleData from "../../../src/sampleData.json";
@@ -12,22 +12,35 @@ import SideBar from "../SideBar/SideBar";
 import toggle from "../../assets/toggle.png";
 import Box from "@mui/material/Box";
 
-const Search = ({setPastData,setPastConversation}) => {
+const sampleQue=[{que:"What's the difference between GET and POST requests?",title:"Get immediate AI generated response"},
+    {que:"Can you explain RESTful APIs?",title:"Get immediate AI generated response"},
+    {que:"Can you explain RESTful APIs?",title:"Get immediate AI generated response"},
+    {que:"What is the virtual DOM?",title:"Get immediate AI generated response"}]
+
+
+const Search = ({setPastConversation}) => {
     const [inputStr, setInputStr] = useState("");
     const [responses, setResponses] = useState([]); 
     const [showQue, setShowQue] = useState(false);
+    const listRef=useRef(null);
     const [showModal, setShowModal] = useState(false);
-    //const [feedback, setFeedback] = useState("");
     const [showRating, setShowRating] = useState(Array(20).fill(false));
     const[feedbackIndex,setFeedbackIndex]=useState(-1);
     const [showFeedback, setShowFeedback] = useState(Array(20).fill(false));
+    const [scrollToBottom,setScrollToBottom]=useState(false);
     const[togglebtn,setTogglebtn]=useState(false);
 
     
-    const sendData=(responses)=>{
-        setPastData(responses);
-// console.log("res",responses);
-    }
+    useEffect(()=>{
+       listRef.current?.lastElementChild.scrollIntoView();
+        },[scrollToBottom]);
+
+    const sendData = (responses) => {
+        const pastData1 = JSON.parse(localStorage.getItem("pastConversation")) || [];
+        localStorage.setItem("pastConversation", JSON.stringify([...responses,...pastData1]));
+        localStorage.setItem("date",new Date().toLocaleDateString());
+    };
+    
     const getTime = () => {
         let currentDate = new Date();
         let hours = currentDate.getHours();
@@ -37,8 +50,11 @@ const Search = ({setPastData,setPastConversation}) => {
         return `${hours}:${minutes < 10 ? '0' + minutes : minutes} ${AmPm}`; 
     };
 
-    const checkAns = (inputStr, e) => {
+    const checkAns = (inputStr,e,preventVal) => {
+        if(!preventVal && e?.preventDefault)
+        {
         e.preventDefault();
+        }
         if (inputStr) {
             setShowQue(true);
             const ans = SampleData.find((data) => data.question.toLowerCase() === inputStr.toLowerCase());
@@ -47,11 +63,14 @@ const Search = ({setPastData,setPastConversation}) => {
                                   answer: response, 
                                   time: getTime(),
                                   ratings:null,
-                                  feedback:"" };
+                                  feedback:"",
+                                   };
             setResponses([...responses, newResponse]);
         }
+        setScrollToBottom(!scrollToBottom);
         setInputStr("");
     };
+
     const handleRating = (index, value) => {
         if (responses[index]) {
             const ratingResponse = [...responses];
@@ -74,16 +93,16 @@ const handleFeedBack=(index)=>{
 
     return (
         <>
-            <div className={style.searchSection}>
-            {togglebtn && (
-        <Box
-          sx={{
+        <div className={style.searchSection}>
+         {togglebtn && (
+          <Box
+           sx={{
             height: "100%",
             position: "fixed",
             backgroundColor: "#ffffff",
             zIndex: 2,
             width:"60%",
-            display: { xs: "block", md: "none" }, // hidden when md and above
+            display: { xs: "block", md: "none" }, 
           }}
         >
           <SideBar setPastConversation={setPastConversation} toggleBtn={true} setTogglebtn={setTogglebtn} togglebtn={togglebtn}/>
@@ -104,16 +123,14 @@ const handleFeedBack=(index)=>{
                 )}
 
                 {!showQue ? (
-                    <div className={style.boxContainer}>
-                        <div className={style.box}><h3>Hi, what is the weather</h3><p>Get immediate AI generated response</p></div>
-                        <div className={style.box}><h3>Hi, what is my location</h3><p>Get immediate AI generated response</p></div>
-                        <div className={style.box}><h3>Hi, what is the temperature</h3><p>Get immediate AI generated response</p></div>
-                        <div className={style.box}><h3>Hi, how are you</h3><p>Get immediate AI generated response</p></div>
-                    </div>
+                    <div className={style.boxContainer}>   
+                        {sampleQue.map((sample,index)=>{return(<div className={style.box} key={index}><h3 onClick={(e)=>checkAns(e.target.innerText,true)}>{sample.que}</h3><p>{sample.title}</p></div>)})}
+                     </div>
                 ) : (
                     <div>
                         {responses.map((response, index) => (
                             <div key={index}>
+
                                 <div className={style.question}>
                                     <div>
                                         <img src={you} alt="you" />
@@ -125,6 +142,7 @@ const handleFeedBack=(index)=>{
                                     </div>
                                 </div>
                                 <div className={style.ansDiv}>
+                                <div ref={listRef}>
                                     <div className={style.question}>
                                         <div>
                                             <img src={round} alt="round" className={style.roundImg} />
@@ -149,6 +167,7 @@ const handleFeedBack=(index)=>{
                                             </div>
                                             {showFeedback[index] && <p><span style={{ fontWeight: "600", fontSize: "30" }}>Feedback:</span> {responses.feedback}</p>}
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                              </div>
